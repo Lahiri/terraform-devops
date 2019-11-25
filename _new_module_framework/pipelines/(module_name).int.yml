@@ -1,4 +1,4 @@
-## The integration pipeline deploys the module using the parameters set in /(module_name)/int/int.tf the destroys the resources. The purpose is to test that the code is working properly.
+## The integration pipeline deploys the module using the parameters set in /(module_name)/int/int.tf then destroys the resources. The purpose is to test that the code is working properly.
 ## Values to replace:
 # <agent-pool-name>
 # <module-name>
