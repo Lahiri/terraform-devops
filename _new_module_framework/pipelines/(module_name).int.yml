@@ -5,8 +5,8 @@
 # <desired-terraform-version> - e.g. 0.12.6
 # <azure-connection-set-in-AzDO>
 # <remote-backend-resource-group>
-# <remove-backend-storage-account>
-# <remove-backend-container>
+# <remote-backend-storage-account>
+# <remote-backend-container>
 pool:
   name: <agent-pool-name>
 trigger:
@@ -32,8 +32,8 @@ steps:
       workingDirectory: '$(System.DefaultWorkingDirectory)/<module-name>/int'
       backendServiceArm: <azure-connection-set-in-AzDO>
       backendAzureRmResourceGroupName: <remote-backend-resource-group>
-      backendAzureRmStorageAccountName: <remove-backend-storage-account>
-      backendAzureRmContainerName: <remove-backend-container>
+      backendAzureRmStorageAccountName: <remote-backend-storage-account>
+      backendAzureRmContainerName: <remote-backend-container>
       backendAzureRmKey: '<module-name>.tfstate'
 
   - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
