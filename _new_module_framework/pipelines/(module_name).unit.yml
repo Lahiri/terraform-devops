@@ -1,0 +1,57 @@
+## The unit test pipeline runs a Pester test that aims to validate the logic in the code without performing any deployment.
+## As it is usually a quicker test that requires no external resources, it is triggered after every push to the feature branch, while other pipelines are only automatically triggered when merged to master.
+## The test file (or files) must be placed in /(module_name)/unit folder and be called <name>.tests.ps1, to be automatically executed by Pester.
+## Values to replace:
+# <agent-pool-name>
+# <module-name>
+# <feature-branch-name> - e.g. feature/<module-name>
+# <variable-group-with-service-principal-credentials>
+# <desired-terraform-version> - e.g. 0.12.6
+# <default-pester-version> - e.g. 4.9.0
+pool:
+  name: <agent-pool-name>
+trigger:
+  branches:
+    include:
+      - master
+      - <feature-branch-name>
+  paths:
+    include:
+      - <module-name>/*
+    exclude:
+      - <module-name>/int/*
+      - <module-name>/unit/*
+      - <module-name>/pipelines/*
+variables:
+  - group: '<variable-group-with-service-principal-credentials>'
+  - name: PesterVersion
+    value: '<default-pester-version>'
+steps:
+  - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
+    displayName: 'Install Terraform <desired-terraform-version>'
+    inputs:
+      terraformVersion: <desired-terraform-version>
+
+  - powershell: |
+      if(!(Get-Module Pester -ListAvailable | Where-Object {$_.Version -eq $env:PesterVersion})){
+        Write-Host "Installing Pester"
+        Install-Module Pester -RequiredVersion $env:PesterVersion -AllowClobber -Force -Scope CurrentUser
+      }
+      else{
+        Write-Host "Pester $($env:PesterVersion) already installed"
+      }
+    displayName: 'Install Pester'
+
+  - powershell: |
+      Import-Module Pester -RequiredVersion $env:PesterVersion
+
+      [string]$OutputFile = "$(System.DefaultWorkingDirectory)" + "\testresults.xml"
+
+      Invoke-Pester -Script <module-name>/unit/unit.tests.ps1 -OutputFile $OutputFile
+    displayName: 'Unit Test'
+
+  - task: PublishTestResults@2
+    displayName: 'Publish Test Results'
+    inputs:
+      testResultsFormat: NUnit
+      testResultsFiles: testresults.xml

@@ -1,0 +1,30 @@
+## The publish pipeline publishes the module as an artifact. It can then be used as a source in a release pipeline.
+## Values to replace:
+# <agent-pool-name>
+# <module-name>
+pool:
+  name: <agent-pool-name>
+trigger:
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - <module-name>/*
+    exclude:
+      - <module-name>/int/*
+      - <module-name>/unit/*
+      - <module-name>/pipelines/*
+steps:
+  - powershell: |
+      $TfFiles = Get-ChildItem '$(System.DefaultWorkingDirectory)/<module-name>' -Filter *.tf
+      New-Item -ItemType Directory -Path '$(System.DefaultWorkingDirectory)/_publish_folder'
+      foreach($File in $TfFiles){
+        Copy-Item -Path $File.FullName -Destination '$(System.DefaultWorkingDirectory)/_publish_folder'
+      }
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: '$(System.DefaultWorkingDirectory)/_publish_folder'
+      artifact: '<module-name>'
+      publishLocation: 'pipeline'

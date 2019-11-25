@@ -1,0 +1,58 @@
+## The integration pipeline deploys the module using the parameters set in /(module_name)/int/int.tf the destroys the resources. The purpose is to test that the code is working properly.
+## Values to replace:
+# <agent-pool-name>
+# <module-name>
+# <desired-terraform-version> - e.g. 0.12.6
+# <azure-connection-set-in-AzDO>
+# <remote-backend-resource-group>
+# <remove-backend-storage-account>
+# <remove-backend-container>
+pool:
+  name: <agent-pool-name>
+trigger:
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - <module-name>/*
+    exclude:
+      - <module-name>/int/*
+      - <module-name>/unit/*
+      - <module-name>/pipelines/*
+steps:
+  - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
+    displayName: 'Install Terraform <desired-terraform-version>'
+    inputs:
+      terraformVersion: <desired-terraform-version>
+
+  - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
+    displayName: 'terraform init'
+    inputs:
+      workingDirectory: '$(System.DefaultWorkingDirectory)/<module-name>/int'
+      backendServiceArm: <azure-connection-set-in-AzDO>
+      backendAzureRmResourceGroupName: <remote-backend-resource-group>
+      backendAzureRmStorageAccountName: <remove-backend-storage-account>
+      backendAzureRmContainerName: <remove-backend-container>
+      backendAzureRmKey: '<module-name>.tfstate'
+
+  - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
+    displayName: 'terraform plan'
+    inputs:
+      command: plan
+      workingDirectory: '$(System.DefaultWorkingDirectory)/<module-name>/int'
+      environmentServiceNameAzureRM: <azure-connection-set-in-AzDO>
+
+  - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
+    displayName: 'terraform apply'
+    inputs:
+      command: apply
+      workingDirectory: '$(System.DefaultWorkingDirectory)/<module-name>/int'
+      environmentServiceNameAzureRM: <azure-connection-set-in-AzDO>
+
+  - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
+    displayName: 'terraform destroy'
+    inputs:
+      command: destroy
+      workingDirectory: '$(System.DefaultWorkingDirectory)/<module-name>/int'
+      environmentServiceNameAzureRM: <azure-connection-set-in-AzDO>
