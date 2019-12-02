@@ -35,7 +35,7 @@ Foreach ($config in $config_files)
             It "resource_group_name" {
                 $input_value = $Script:output.variables.resource_group_name.value
 
-                foreach($resource in ($Script:output.planned_values.root_module.child_modules[0].resources)){
+                foreach($resource in ($Script:output.planned_values.root_module.resources)){
                     $planned_value = $resource.values.resource_group_name
 
                     $input_value | Should -BeExactly $planned_value
@@ -46,7 +46,7 @@ Foreach ($config in $config_files)
 <#
             It "<input-variable>" {
                 $input_value = $Script:output.variables.<input-variable>.value
-                $planned_value = ($Script:output.planned_values.root_module.child_modules[0].resources | Where-Object {$_.name -eq "nic"}).values.<path-to-applied-value>
+                $planned_value = ($Script:output.planned_values.root_module.resources | Where-Object {$_.name -eq "nic"}).values.<path-to-applied-value>
 
                 $input_value | Should -BeExactly $planned_value
             }
