@@ -52,6 +52,7 @@ steps:
 
   - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV1@0
     displayName: 'terraform destroy'
+    condition: succeededOrFailed()
     inputs:
       command: destroy
       workingDirectory: '$(System.DefaultWorkingDirectory)/<module-name>/int'
